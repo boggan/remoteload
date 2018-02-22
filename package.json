@@ -1,16 +1,23 @@
 {
   "name": "remoteload",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Library to load files from a url into a local temp directory for local use.",
   "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/boggan/remoteload"
+  },
   "keywords": [
     "remote",
     "load",
     "file",
-    "local"
+    "local",
+    "require",
+    "import",
+    "source"
   ],
   "author": "Thomas Lanteigne",
   "license": "ISC",
