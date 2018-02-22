@@ -32,7 +32,7 @@ function _fetchFile_internal(i_sURL, i_oCallback) {
         l_oOptions = url.parse(i_sURL),
         l_fnRequestMethod;
 
-    if(l_oOptions.protocol === "https:") {
+    if (l_oOptions.protocol === "https:") {
         l_fnRequestMethod = https.request.bind(https);
     } else {
         l_fnRequestMethod = http.request.bind(http);
@@ -155,6 +155,10 @@ class RemoteLoader { // or convert to "function" class to keep private variables
         });
     }
 
+    /**
+     * Fetches URLs and store their content as files within a temporary folder.
+     * returns a promise which will receives the folder where files are stored as argument.
+     */
     //==========================================================================
     loadURLs(i_aURLs) {
         // @ this point we can safely assume we're in a nodejs environment
@@ -176,6 +180,15 @@ class RemoteLoader { // or convert to "function" class to keep private variables
             // write all files
             .then(i_aURLsData => _writeAllFiles(l_sTmpDir, l_aFileNames, i_aURLsData))
             .then(() => l_sTmpDir);
+    }
+
+    /**
+     * Fetches URLs and return their content as array of buffer objects.
+     * returns a promise which will receives an array of Buffer objects containing the requested data based on the urls.
+     */
+    //==========================================================================
+    loadURLsData(i_aURLs) {
+        return Promise.all(i_aURLs.map(_fetchFile));
     }
 
     /**
