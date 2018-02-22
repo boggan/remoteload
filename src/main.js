@@ -29,9 +29,16 @@ function _fetchFile(i_sURL) {
 //==============================================================================
 function _fetchFile_internal(i_sURL, i_oCallback) {
     let l_oRequest,
-        l_oOptions = url.parse(i_sURL);
+        l_oOptions = url.parse(i_sURL),
+        l_fnRequestMethod;
 
-    l_oRequest = https.request(l_oOptions, (i_oResponse) => {
+    if(l_oOptions.protocol === "https:") {
+        l_fnRequestMethod = https.request.bind(https);
+    } else {
+        l_fnRequestMethod = http.request.bind(http);
+    }
+
+    l_oRequest = l_fnRequestMethod(l_oOptions, (i_oResponse) => {
         if (i_oResponse.statusCode === 200) {
             let l_aBuffer = Buffer.from([]);
 
@@ -58,9 +65,17 @@ function _fetchFile_internal(i_sURL, i_oCallback) {
 //==============================================================================
 function _assertWritingDirectories(i_sTmpFolder, i_aFileNames) {
     let l_oFolders = new Set(),
+        l_aDirnames = [],
         l_aPromises;
 
-    i_aFileNames.forEach(i_sFilePath => l_oFolders.add(path.dirname(path.join(i_sTmpFolder, i_sFilePath))));
+    l_aDirNames = i_aFileNames.map(i_sFilePath => path.dirname(i_sFilePath));
+    l_aDirNames.forEach(i_sRelPath => {
+        // explode folders before creating them if missing
+        _explodeRelativePath(i_sRelPath)
+            .forEach(i_sFolderPath => {
+                l_oFolders.add(path.join(i_sTmpFolder, i_sFolderPath));
+            });
+    });
 
     l_aPromises = Array.from(l_oFolders).sort().map(_AssertDirectory);
 
@@ -80,6 +95,31 @@ function _AssertDirectory(i_sFolderName) {
             }
         });
     });
+}
+
+//==============================================================================
+function _explodeRelativePath(i_sRelPath) {
+    let l_aFolderSections = i_sRelPath
+        .split(path.sep)
+        .filter(i_sPath => i_sPath);
+
+    return l_aFolderSections.map(_explodeRelativePathSegment.bind(this, l_aFolderSections));
+}
+
+//==============================================================================
+function _explodeRelativePathSegment(i_aFolderSections, i_sRelPath, i_nIdx) {
+    let i,
+        l_aSegments = [];
+
+    if (i_nIdx > 0) {
+        for (i = 0; i < i_nIdx; i++) {
+            l_aSegments.push(i_aFolderSections[i])
+        }
+    }
+
+    l_aSegments.push(i_sRelPath);
+
+    return l_aSegments.join(path.sep);
 }
 
 // - write files
