@@ -77,9 +77,21 @@ function _assertWritingDirectories(i_sTmpFolder, i_aFileNames) {
             });
     });
 
-    l_aPromises = Array.from(l_oFolders).sort().map(_AssertDirectory);
+    // need to write the directory sequentially, since some folders might be dependent on others
+    return Array
+        .from(l_oFolders)
+        .sort()
+        .reduce((i_pPromiseChain, i_sFolderToAssert) => i_pPromiseChain.then(() => _AssertDirectory(i_sFolderToAssert)), Promise.resolve([]));
+}
 
-    return Promise.all(l_aPromises);
+//==============================================================================
+function _assertAllDirectories(i_aDirectories) {
+    _AssertDirectory(i_aDirectories.shift())
+        .then(() => {
+            if (i_aDirectories.length > 0) {
+                _assertAllDirectories(i_aDirectories)
+            }
+        });
 }
 
 //==============================================================================
