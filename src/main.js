@@ -69,6 +69,7 @@ function _assertWritingDirectories(i_sTmpFolder, i_aFileNames) {
         l_aPromises;
 
     l_aDirNames = i_aFileNames.map(i_sFilePath => path.dirname(i_sFilePath));
+
     l_aDirNames.forEach(i_sRelPath => {
         // explode folders before creating them if missing
         _explodeRelativePath(i_sRelPath)
@@ -111,8 +112,17 @@ function _AssertDirectory(i_sFolderName) {
 
 //==============================================================================
 function _explodeRelativePath(i_sRelPath) {
-    let l_aFolderSections = i_sRelPath
-        .split(path.sep)
+    let l_sSeparator,
+        l_aFolderSections;
+
+    if (i_sRelPath.includes(path.sep)) {
+        l_sSeparator = path.sep;
+    } else {
+        l_sSeparator = path.posix.sep;
+    }
+
+    l_aFolderSections = i_sRelPath
+        .split(l_sSeparator)
         .filter(i_sPath => i_sPath);
 
     return l_aFolderSections.map(_explodeRelativePathSegment.bind(this, l_aFolderSections));
