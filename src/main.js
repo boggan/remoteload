@@ -23,11 +23,11 @@ function _createTempDirectory() {
 
 //==============================================================================
 function _fetchFile(i_sURL) {
-    return new Promise(i_fnResolve => _fetchFile_internal(i_sURL, i_fnResolve));
+    return new Promise((i_fnResolve, i_fnReject) => _fetchFile_internal(i_sURL, i_fnResolve, i_fnReject));
 }
 
 //==============================================================================
-function _fetchFile_internal(i_sURL, i_oCallback) {
+function _fetchFile_internal(i_sURL, i_fnResolve, i_fnReject) {
     let l_oRequest,
         l_oOptions = url.parse(i_sURL),
         l_fnRequestMethod;
@@ -47,10 +47,10 @@ function _fetchFile_internal(i_sURL, i_oCallback) {
             });
 
             i_oResponse.on('end', () => {
-                i_oCallback(l_aBuffer);
+                i_fnResolve(l_aBuffer);
             });
         } else {
-            throw ("File not found " + i_sURL);
+            i_fnReject("File not found " + i_sURL);
         }
     });
 
@@ -201,7 +201,7 @@ class RemoteLoader { // or convert to "function" class to keep private variables
             })
             // write all files
             .then(i_aURLsData => _writeAllFiles(l_sTmpDir, l_aFileNames, i_aURLsData))
-            .then(() => l_sTmpDir);
+            .then(() => l_sTmpDir)
     }
 
     /**
@@ -221,7 +221,7 @@ class RemoteLoader { // or convert to "function" class to keep private variables
         let l_aPromises = g_oTmpDirRegistry
             .get(this)
             .tmpDirs
-            .map(i_sTmpDir => new Promise(i_fnResolve => rimraf(i_sTmpDir, i_fnResolve)));
+            .map(i_sTmpDir => new Promise(i_fnResolve => rimraf(i_sTmpDir, () => i_fnResolve(i_sTmpDir))));
 
         return Promise.all(l_aPromises);
     }
